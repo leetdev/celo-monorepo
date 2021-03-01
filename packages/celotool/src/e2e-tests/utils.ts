@@ -15,6 +15,7 @@ import {
 } from '../lib/generate_utils'
 import {
   buildGeth,
+  buildGethAll,
   checkoutGethRepo,
   connectPeers,
   connectValidatorPeers,
@@ -27,6 +28,7 @@ import {
   snapshotDatadir,
   startGeth,
   writeGenesis,
+  writeGenesisWithMigrations,
 } from '../lib/geth'
 import { GethInstanceConfig } from '../lib/interfaces/geth-instance-config'
 import { GethRepository } from '../lib/interfaces/geth-repository'
@@ -227,7 +229,11 @@ export function getContext(gethConfig: GethRunConfig, verbose: boolean = verbose
       await checkoutGethRepo(repo.branch || 'master', repo.path)
     }
 
-    await buildGeth(repo.path)
+    if (gethConfig.useMycelo) {
+      await buildGeth(repo.path)
+    } else {
+      await buildGethAll(repo.path)
+    }
 
     if (!gethConfig.keepData && fs.existsSync(gethConfig.runPath)) {
       await resetDataDir(gethConfig.runPath, verbose)
@@ -238,7 +244,11 @@ export function getContext(gethConfig: GethRunConfig, verbose: boolean = verbose
       fs.mkdirSync(gethConfig.runPath, { recursive: true })
     }
 
-    await writeGenesis(gethConfig, validators, verbose)
+    if (gethConfig.useMycelo) {
+      await writeGenesisWithMigrations(gethConfig, repo.path, mnemonic, validators.length, verbose)
+    } else {
+      await writeGenesis(gethConfig, validators, verbose)
+    }
 
     let validatorIndex = 0
     let proxyIndex = 0
@@ -293,7 +303,7 @@ export function getContext(gethConfig: GethRunConfig, verbose: boolean = verbose
     // Directly connect validator peers that are not using a bootnode or proxy.
     await connectValidatorPeers(gethConfig.instances)
 
-    if (gethConfig.migrate || gethConfig.migrateTo) {
+    if (!gethConfig.useMycelo && (gethConfig.migrate || gethConfig.migrateTo)) {
       await Promise.all(
         gethConfig.instances.filter((i) => i.validating).map((i) => waitToFinishInstanceSyncing(i))
       )

@@ -8,6 +8,8 @@ export interface GethRunConfig {
   migrateTo?: number
   migrationOverrides?: any
   keepData?: boolean
+  // Whether to use the mycelo tool to generate the genesis.json
+  useMycelo?: boolean
   // genesis config
   genesisConfig?: GenesisConfig
   // network
