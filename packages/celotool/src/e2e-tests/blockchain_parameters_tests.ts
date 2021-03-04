@@ -17,6 +17,7 @@ describe('Blockchain parameters tests', function(this: any) {
 
   const gethConfig: GethRunConfig = {
     useMycelo: true,
+    myceloSkipCompilingContracts: false, // needs to be false for CI, but can be true to save time between runs during development
     runPath: TMP_PATH,
     keepData: false,
     networkId: 1101,

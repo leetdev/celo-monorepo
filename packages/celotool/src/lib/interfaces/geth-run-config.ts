@@ -10,6 +10,8 @@ export interface GethRunConfig {
   keepData?: boolean
   // Whether to use the mycelo tool to generate the genesis.json
   useMycelo?: boolean
+  // Skip compiling the smart contracts (e.g. for devs, if you already compiled them previously)
+  myceloSkipCompilingContracts?: boolean
   // genesis config
   genesisConfig?: GenesisConfig
   // network

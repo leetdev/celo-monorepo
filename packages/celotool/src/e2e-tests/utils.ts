@@ -5,7 +5,7 @@ import fs from 'fs'
 import { join as joinPath, resolve as resolvePath } from 'path'
 import readLastLines from 'read-last-lines'
 import Web3 from 'web3'
-import { spawnCmd } from '../lib/cmd-utils'
+import { spawnCmd, spawnCmdWithExitOnFailure } from '../lib/cmd-utils'
 import {
   AccountType,
   getPrivateKeysFor,
@@ -245,6 +245,12 @@ export function getContext(gethConfig: GethRunConfig, verbose: boolean = verbose
     }
 
     if (gethConfig.useMycelo) {
+      // Compile the contracts first because mycelo assumes they are compiled already, unless told not to
+      if (!gethConfig.myceloSkipCompilingContracts) {
+        await spawnCmdWithExitOnFailure('yarn', ['build:sol'], {
+          cwd: `${MonorepoRoot}/packages/protocol`,
+        })
+      }
       await writeGenesisWithMigrations(gethConfig, repo.path, mnemonic, validators.length, verbose)
     } else {
       await writeGenesis(gethConfig, validators, verbose)
